@@ -70,20 +70,20 @@ public class EnemyGenerator : MonoBehaviour
 
     void ApplyRoleScale(string role)
     {
-        float scale = random.Range(50.0f, 150.0f);
+        float scale = Random.Range(50.0f, 150.0f);
         switch (role)
         {
             case "Minion":
-                scale = random.Range(40.0f, 60.0f);
+                scale = Random.Range(40.0f, 60.0f);
                 break;
             case "Leader":
-                scale = random.Range(80.0f, 120.0f);
+                scale = Random.Range(80.0f, 120.0f);
                 break;
             case "Boss":
-                scale = random.Range(140.0f, 160.0f);
+                scale = Random.Range(140.0f, 160.0f);
                 break;
             default:
-                scale = random.Range(50.0f, 150.0f);
+                scale = Random.Range(50.0f, 150.0f);
                 break;
         }
         SetScale(scale);
