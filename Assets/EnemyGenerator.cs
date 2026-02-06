@@ -1,6 +1,8 @@
 using UnityEngine;
 using TMPro;
 using Random = UnityEngine.Random;
+using System;
+
 
 public class EnemyGenerator : MonoBehaviour
 {
@@ -16,28 +18,24 @@ public class EnemyGenerator : MonoBehaviour
     // Special Traits
     public GameObject StrongArm;
     public GameObject FastLeg;
-    public GameObject Wings;
+    public GameObject DragonWings;
+    public GameObject WingsFeathers;
+    public GameObject PixieWings;
     public GameObject SturdyTorso;
-
-    // Secondary Trait Variants (if any)
-    public GameObject StrongArmSecondary;
-    public GameObject FastLegSecondary;
-    public GameObject WingsSecondary;
-    public GameObject SturdyTorsoSecondary;
 
     // Materials
     public Material TonedMaterial;
+    public Material DragonMaterial;
+    public Material PixieMaterial;
 
     public string role = "None";
     public string chosenTrait = "None";
-    public string secondaryTrait = "None";
     public Color enemyColor = Color.white;
 
     void Start()
     {
         ApplyRoleScale(role);
         ApplyTrait(chosenTrait);
-        ApplySecondaryTrait(secondaryTrait);
         ApplyColor(enemyColor);
     }
 
@@ -55,22 +53,24 @@ public class EnemyGenerator : MonoBehaviour
         if (index == 4) chosenTrait = "SturdyTorso"; 
     }
 
-    public void SetSecondaryTrait(int index) { 
-        if (index == 0) secondaryTrait = "None"; 
-        if (index == 1) secondaryTrait = "StrongArm"; 
-        if (index == 2) secondaryTrait = "FastLeg"; 
-        if (index == 3) secondaryTrait = "Wings"; 
-        if (index == 4) secondaryTrait = "SturdyTorso"; 
-    }
-
     public void SetColorFromKnob(float value) {
         enemyColor = Color.HSVToRGB(value, 1f, 1f);
-        GenerateEnemy();
     }
+
+    string RandomPart(string one, string two, string three, float weightOne, float weightTwo, float weightThree) { 
+        float roll = Random.Range(0f, 1f) * 100f; 
+        if (roll <= weightOne) 
+            return one; 
+        else if (weightOne < roll && roll <= weightOne + weightTwo) 
+            return two; 
+        else 
+            return three; 
+    }
+
 
     void ApplyRoleScale(string role)
     {
-        float scale = Random.Range(50.0f, 150.0f);
+        float scale;
         switch (role)
         {
             case "Minion":
@@ -98,15 +98,18 @@ public class EnemyGenerator : MonoBehaviour
         // Disable all traits first
         StrongArm.SetActive(false);
         FastLeg.SetActive(false);
-        Wings.SetActive(false);
+        DragonWings.SetActive(false);
+        WingsFeathers.SetActive(false);
+        PixieWings.SetActive(false);
         SturdyTorso.SetActive(false);
         head.SetActive(true);
-        body.SetActive(true); 
+        body.SetActive(true);
         leftArm.SetActive(true);
         rightArm.SetActive(true);
         leftLeg.SetActive(true);
         rightLeg.SetActive(true);
         tail.SetActive(true);
+
 
         // Enable the chosen trait
         switch (trait)
@@ -122,7 +125,49 @@ public class EnemyGenerator : MonoBehaviour
                 rightLeg.SetActive(false);
                 break;
             case "Wings":
-                Wings.SetActive(true);
+                if (role == "Minion") {
+                    string wingType = RandomPart("DragonWings", "WingsFeathers", "PixieWings", 20f, 20f, 60f);
+                    switch (wingType)
+                    {
+                        case "DragonWings":
+                            DragonWings.SetActive(true);
+                            break;
+                        case "WingsFeathers":
+                            WingsFeathers.SetActive(true);
+                            break;
+                        case "PixieWings":
+                            PixieWings.SetActive(true);
+                            break;
+                    }
+                } else if (role == "Leader") {
+                    string wingType = RandomPart("DragonWings", "WingsFeathers", "PixieWings", 20f, 60f, 20f);
+                    switch (wingType)
+                    {
+                        case "DragonWings":
+                            DragonWings.SetActive(true);
+                            break;
+                        case "WingsFeathers":
+                            WingsFeathers.SetActive(true);
+                            break;
+                        case "PixieWings":
+                            PixieWings.SetActive(true);
+                            break;
+                    }
+                } else { // Boss
+                    string wingType = RandomPart("DragonWings", "WingsFeathers", "PixieWings", 60f, 20f, 20f);
+                    switch (wingType)
+                    {
+                        case "DragonWings":
+                            DragonWings.SetActive(true);
+                            break;
+                        case "WingsFeathers":
+                            WingsFeathers.SetActive(true);
+                            break;
+                        case "PixieWings":
+                            PixieWings.SetActive(true);
+                            break;
+                    }
+                }
                 break;
             case "SturdyTorso":
                 SturdyTorso.SetActive(true);    
@@ -133,38 +178,7 @@ public class EnemyGenerator : MonoBehaviour
         }
     }
 
-    void ApplySecondaryTrait(string trait)
-    {
-        // Disable all secondary traits first
-        StrongArmSecondary.SetActive(false);
-        FastLegSecondary.SetActive(false);
-        WingsSecondary.SetActive(false);
-        SturdyTorsoSecondary.SetActive(false);
-
-        // Enable the chosen secondary trait
-        switch (trait)
-        {
-            case "StrongArm":
-                StrongArmSecondary.SetActive(true);
-                leftArm.SetActive(false);
-                rightArm.SetActive(false);
-                break;
-            case "FastLeg":
-                FastLegSecondary.SetActive(true);
-                leftLeg.SetActive(false);
-                rightLeg.SetActive(false);
-                break;
-            case "Wings":
-                WingsSecondary.SetActive(true);
-                break;
-            case "SturdyTorso":
-                SturdyTorsoSecondary.SetActive(true);  
-                body.SetActive(false);  
-                break;
-            default:
-                break;
-        }
-    }
+   
 
     // Apply color to all parts
     void ApplyColor(Color color)
@@ -172,14 +186,16 @@ public class EnemyGenerator : MonoBehaviour
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         foreach (Renderer renderer in renderers)
         {
-            renderer.material.color = color;
+            if(renderer.material == TonedMaterial){
+                renderer.material.color = color;
+            }
         }
     }
 
     public void GenerateEnemy() { 
         ApplyRoleScale(role); 
         ApplyTrait(chosenTrait); 
-        ApplySecondaryTrait(secondaryTrait);
         ApplyColor(enemyColor); 
+        Debug.Log("Eenemy Generated: " + role + " with trait " + chosenTrait);
     }
 }
